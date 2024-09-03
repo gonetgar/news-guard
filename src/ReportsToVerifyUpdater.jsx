@@ -2,37 +2,37 @@ import { useEffect, useState, useRef } from "react";
 import PresentWindowToVerifyReport from "./PresentWindowToVerifyReport";
 
 const ReportsToVerifyUpdater = () => {
-  const userData = JSON.parse(localStorage.getItem('userData')); // Retrieve the logged-in user's data
-  console.log('REPORTS TO VERIFY: user id: ',userData.userId);
+  const userData = JSON.parse(localStorage.getItem("userData")); // Retrieve the logged-in user's data
   const userID = userData.userId;
-  
+  console.log("REPORTS TO VERIFY: user id: ", userID);
+
   const [reportToVerify, setReportToVerify] = useState(null); // State to track the report that needs to be verified
-  console.log("====================")
+  console.log("====================");
 
   useEffect(() => {
     const getReportsToVerifyFromServer = async () => {
       try {
-        console.log("getReportsToVerifyFromServer")
-        const response = await fetch(`http://localhost:8080/verification/get-reports-that-guard-need-to-verify?guardID=${userID}`);
-        // const response = await fetch(`http://localhost:8080/verification/get-reports-that-guard-need-to-verify?guardID=${userID}`);
+        console.log("getReportsToVerifyFromServer");
+        const response = await fetch(
+          `http://localhost:8080/verification/get-reports-that-guard-need-to-verify?guardID=${userID}`
+        );
+        //const response = await fetch(`http://localhost:8080/verification/get-reports-that-guard-need-to-verify?guardID=${userID}`);
 
-
-        console.log('reports to verify: Response status:', response.status);
-        if (response.ok)
-        {
+        console.log("reports to verify: Response status:", response.status);
+        if (response.ok) {
           const data = await response.json();
           let dataFromServerArray = Object.values(data); // הופך את דאטה למערך
           dataFromServerArray.forEach((element, index) => {
             console.log(`Element ${index}:`, element);
           });
 
-          console.log("!@#$%^&")
-          if(dataFromServerArray.length > 0){
-            console.log("dataFromServerArray.length > 0")
+          console.log("!@#$%^&");
+          if (dataFromServerArray.length > 0) {
+            console.log("dataFromServerArray.length > 0");
             dataFromServerArray.forEach((element) => {
-              if(!pendingReportsList.includes(element)){
+              if (!pendingReportsList.includes(element)) {
                 // אם הוא לא נמצא - להוסיף אותו למערך של המחכים בתור
-                console.log("added new element")
+                console.log("added new element");
                 pendingReportsList.push(element);
                 // Set the report that needs to be verified
                 setReportToVerify(element);
@@ -49,69 +49,71 @@ const ReportsToVerifyUpdater = () => {
               //   //console.log("reports to verify: we need to present the report to user");
               //   pendingReportsList.push(element);
               //   // לקרוא לפונקציה שמציגה למשתמש בפתאומיות את הריפורטים שהוא צריך לאשר
-                
+
               //   console.log("Gon")
               //   PresentWindowToVerifyReport(element);
               //   console.log("NITzaN")
               // }
             });
-              // אם יש משהו במערך:
-              // בודקת האם האיידי של הריפורט קיים אצלי כבר, בליסט הזה:
-              // pendingReportsList
-              // אם הוא קיים:
-              // זה אומר שאנחנו מחכים לתשובה של הגארד
-              // ואם הוא לא קיים:
-              // זה אומר שזה ריפורט חדש ואז צריך להציג את הריפורט זה למשתמש
-              // וגם להוסיף אותו לרשימה של הפנדינג
-              // -->
-              // לקרוא לפונקציה שמציגה למשתמש בפתאומיות את הריפורטים שהוא צריך לאשר
-          }
-          else {
-            console.log("reports to verify: DEBUG- dataFromServerArray.length = 0")
+            // אם יש משהו במערך:
+            // בודקת האם האיידי של הריפורט קיים אצלי כבר, בליסט הזה:
+            // pendingReportsList
+            // אם הוא קיים:
+            // זה אומר שאנחנו מחכים לתשובה של הגארד
+            // ואם הוא לא קיים:
+            // זה אומר שזה ריפורט חדש ואז צריך להציג את הריפורט זה למשתמש
+            // וגם להוסיף אותו לרשימה של הפנדינג
+            // -->
+            // לקרוא לפונקציה שמציגה למשתמש בפתאומיות את הריפורטים שהוא צריך לאשר
+          } else {
+            console.log(
+              "reports to verify: DEBUG- dataFromServerArray.length = 0"
+            );
           }
           //showReportToVerify(data);
           //console.log('Fetched reports data:', data);
           //setReports(data);
-        }
-        else
-        {
+        } else {
           const errorMessage = await response.text();
-          console.error('Response error:', errorMessage);
+          console.error("Response error:", errorMessage);
 
-          if (response.status === 404) { // Not Found
-            setError('Reports not found.');
-          } else if (response.status === 500) { // Server Error
-            setError('Server error occurred while fetching reports.');
+          if (response.status === 404) {
+            // Not Found
+            setError("Reports not found.");
+          } else if (response.status === 500) {
+            // Server Error
+            setError("Server error occurred while fetching reports.");
           } else {
             setError(`Error: ${errorMessage}`);
           }
         }
       } catch (error) {
-        console.error('Error occurred during fetching reports:', error);
-        setError('An error occurred while fetching reports. Please try again.');
+        console.error("Error occurred during fetching reports:", error);
+        setError("An error occurred while fetching reports. Please try again.");
       }
     };
 
-  // const ReportToVerify = () => {
-  //   getReportsToVerifyFromServer();
-  // };
-  // ReportToVerify(); // Send location immediately when the component mounts
+    // const ReportToVerify = () => {
+    //   getReportsToVerifyFromServer();
+    // };
+    // ReportToVerify(); // Send location immediately when the component mounts
 
-  
-  getReportsToVerifyFromServer();
-  let pendingReportsList = []; // initialization
-  //const intervalId = setInterval(ReportToVerify, 60000); // Send location every minute
-  const intervalId = setInterval(getReportsToVerifyFromServer, 60000);
+    getReportsToVerifyFromServer();
+    let pendingReportsList = []; // initialization
+    //const intervalId = setInterval(ReportToVerify, 60000); // Send location every minute
+    const intervalId = setInterval(getReportsToVerifyFromServer, 60000);
 
-  return () => clearInterval(intervalId); // Clean up the interval on component unmount
-}, [userID]);
+    return () => clearInterval(intervalId); // Clean up the interval on component unmount
+  }, [userID]);
 
-// Conditionally render the pop-up
-return (
-  <>
-    {reportToVerify && <PresentWindowToVerifyReport report={reportToVerify} />}
-  </>
-);
+  // Conditionally render the pop-up
+  return (
+    <>
+      {reportToVerify && (
+        <PresentWindowToVerifyReport report={reportToVerify} />
+      )}
+    </>
+  );
 };
 
 // return null; // This component doesn't render anything
@@ -119,12 +121,9 @@ return (
 
 export default ReportsToVerifyUpdater;
 
-
 // function presentPopUpToApproveReport() {
 //   console.log("reports to verify: presentPopUpToApproveReport function")
 // }
-
-
 
 // const ReportsToVerifyUpdater = () => {
 //   const userData = JSON.parse(localStorage.getItem('userData')); // Retrieve the logged-in user's data
@@ -137,7 +136,6 @@ export default ReportsToVerifyUpdater;
 //   console.log("DEBUG: popupContent: " + popupContent);
 //   const isMounted = useRef(true);
 //   console.log("DEBUG: isMounted: " + isMounted);
-
 
 //   useEffect(() => {
 //     const getReportsToVerifyFromServer = async () => {
