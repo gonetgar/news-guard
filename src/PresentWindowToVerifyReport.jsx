@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useRef } from "react";
-import './PresentWindowToVerifyReport.css';
+import "./PresentWindowToVerifyReport.css";
 
-
-function PresentWindowToVerifyReport({report, onClose}) {
-  const userData = JSON.parse(localStorage.getItem('userData')); // Retrieve the logged-in user's data
+function PresentWindowToVerifyReport({ report }) {
+  const userData = JSON.parse(localStorage.getItem("userData")); // Retrieve the logged-in user's data
+  //console.log('PresentWindowToVerifyReport: user id: ',userData.userId);
   const userID = userData.userId;
-  // console.log("user id = " + userID)
+  console.log("user id=" + userID);
 
   // console.log("report to show: " + JSON.stringify(report));
   
@@ -52,31 +52,28 @@ function PresentWindowToVerifyReport({report, onClose}) {
   // };
 
   const sendVerificationRequest = async (reportId, verification) => {
-    // console.log("sendVerificationRequest")
+    console.log("sendVerificationRequest");
     try {
-      console.log("entering try, verification: " + verification)
-      console.log("reportID=" + reportId + " userID=" + userID + " verification=", verification)
-      const response = await fetch(`http://localhost:8080/verification/update-guard-verification?reportID=${reportId}&guardID=${userID}&verification=${verification}`,
+      // console.log("entering try, verification: " + verification)
+      const response = await fetch(
+        `http://localhost:8080/verification/update-guard-verification?reportID=${reportId}&guardID=${userID}&verification=${verification}`,
         {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
-        });
+      );
 
-      if(response.ok){
-        // console.log("Verification updated successfully");
-        onClose();
-        // console.log("onClose()")
-        //setIsVisible(false); // Hide the window after the request is successful
-        // return response.text("setIsVisible=" + isVisible);
-      }
-      else
-      {
-        console.log("Error updating verification");
+      if (response.ok) {
+        setIsVisible(false); // Hide the window after the request is successful
+        console.log("");
+        return response.text("setIsVisible=" + isVisible);
+      } else {
+        console.log("error");
         throw new Error("Failed to update guard verification");
       }
-    } catch (error){
+    } catch (error) {
       console.error("Error:", error);
       console.log("ERRORRRRR")
       return;
@@ -202,3 +199,114 @@ export default PresentWindowToVerifyReport;
   //     console.error("Error:", error);
   //   });
   // };
+
+  // Handlers for buttons
+  const handleApprovalClick = (reportId) => {
+    console.log("Approved report ID: ", reportId);
+    sendVerificationRequest(reportId, 1); // 1 for Approval
+  };
+
+  const handleDenyClick = (reportId) => {
+    console.log("Denied report ID: ", reportId);
+    sendVerificationRequest(reportId, 2); // 2 for Denial
+  };
+
+  const handleDontKnowClick = (reportId) => {
+    console.log("Don't know report ID: ", reportId);
+    sendVerificationRequest(reportId, 3); // 3 for Don't Know
+  };
+
+  const handleReplyLaterClick = (reportId) => {
+    console.log("Reply later report ID: ", reportId);
+    setIsVisible(false); // Hide the window immediately for "Reply Later"
+  };
+
+  // Don't render the window if it's not visible
+  if (!isVisible) {
+    return null;
+  }
+
+  return (
+    <div className="present-report-container">
+      {/* <div className="present-report-header"> */}
+      {/* <p className="present-report-details"><strong>Reporter: </strong>{report.anonymous ? 'Anonymous' : report.reporterFullName}</p> */}
+      {/* <p className="present-report-details">⭐ Report Reliability: {report.reliabilityRate} ⭐</p> */}
+      {/* <p className="present-report-details">Location: {report.location.x}, {report.location.y}</p> */}
+      {/* <p className="present-report-details">{new Date(report.timeReported).toLocaleString()}</p> */}
+      {/* </div> */}
+
+      {/* <div className="present-report-header">
+        <div className="present-report-details-left">
+          <strong>Reporter: </strong>{report.anonymous ? 'Anonymous' : report.reporterFullName}
+        </div>
+        <div className="present-report-details-center">
+          ⭐ Report Reliability: {report.reliabilityRate} ⭐
+        </div>
+        <div className="present-report-details-right">
+          {new Date(report.timeReported).toLocaleString()}
+        </div>
+      </div> */}
+
+      <div className="present-report-header">
+        <div className="present-report-section present-report-details-left">
+          <span className="present-report-label">Reporter</span>
+          <span className="present-report-value">
+            {report.anonymous ? "Anonymous" : report.reporterFullName}
+          </span>
+        </div>
+        <div className="present-report-section present-report-details-center">
+          <span className="present-report-label">Reliability</span>
+          <span className="present-report-value">{report.reliabilityRate}</span>
+        </div>
+        <div className="present-report-section present-report-details-right">
+          <span className="present-report-label">Time</span>
+          <span className="present-report-value">
+            {new Date(report.timeReported).toLocaleString()}
+          </span>
+        </div>
+      </div>
+
+      <div>
+        {report.imageURL ? (
+          <img
+            className="present-report-img"
+            src={report.imageURL}
+            alt="Report"
+            style={{ maxWidth: "100%", height: "auto" }}
+          />
+        ) : null}
+      </div>
+
+      <p className="present-report-txt">{report.text}</p>
+
+      <div className="present-report-buttons">
+        <button
+          className="present-approve-button"
+          onClick={() => handleApprovalClick(report.reportID)}
+        >
+          Approve
+        </button>
+        <button
+          className="present-deny-button"
+          onClick={() => handleDenyClick(report.reportID)}
+        >
+          Deny
+        </button>
+        <button
+          className="present-dont-know-button"
+          onClick={() => handleDontKnowClick(report.reportID)}
+        >
+          Don't Know
+        </button>
+        <button
+          className="present-later-button"
+          onClick={() => handleReplyLaterClick(report.reportID)}
+        >
+          Reply Later
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export default PresentWindowToVerifyReport;
